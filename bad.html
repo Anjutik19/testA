@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noķer ābolus</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #87CEEB;
+        }
+
+        #game-container {
+            position: relative;
+            width: 80%;
+            height: 80vh;
+            overflow: hidden;
+            background-image: url('./fons1.jpg');
+            background-size: cover;
+            background-position: center;
+            border: 2px solid #000;
+            box-shadow: 0 0 0px rgba(0, 0, 0, 0.5);
+        }
+
+        .apple {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-image: url('./red.png');
+            z-index: 1;
+        }
+
+        #basket {
+            position: absolute;
+            bottom: 10px;
+            width: 120px;
+            height: 90px;
+            z-index: 10;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-image: url('./1.png');
+            display: none;
+        }
+
+        #start-screen, #result-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            z-index: 2;
+        }
+
+        #result-screen {
+            display: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #403F6F;
+            color: white;
+            border: none;
+            margin: 10px;
+        }
+
+
+        #score {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen">
+            <h1>Savāc visus ābolus – ja kādu palaidīsi garām, spēle beigsies!</h1>
+            <button onclick="startGame()">Sākt spēli</button>
+        </div>
+
+        <div id="result-screen">
+            <h1 id="result-message">Spēle beigusies!</h1>
+            <p id="final-score"></p>
+            <button onclick="restartGame()">Spēlēt vēlreiz</button>
+        </div>
+
+        <div id="score">Salasīti āboli: 0</div>
+        <div id="basket"></div>
+    </div>
+
+    <script>
+        const basket = document.getElementById('basket');
+        const gameContainer = document.getElementById('game-container');
+        const startScreen = document.getElementById('start-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const scoreDisplay = document.getElementById('score');
+        const finalScore = document.getElementById('final-score');
+
+        let appleInterval;
+        let countdownInterval;
+        let score = 0;
+
+
+        document.addEventListener('mousemove', (e) => {
+            const rect = gameContainer.getBoundingClientRect();
+            const basketWidth = basket.offsetWidth;
+            let x = e.clientX - rect.left - basketWidth / 2;
+            x = Math.max(0, Math.min(rect.width - basketWidth, x));
+            basket.style.left = `${x}px`;
+        });
+
+        function startGame() {
+            score = 0;
+            startScreen.style.display = 'none';
+            resultScreen.style.display = 'none';
+            basket.style.display = 'block';
+
+            appleInterval = setInterval(spawnApple, 1000);
+        }
+
+        function spawnApple() {
+            const apple = document.createElement('div');
+            apple.className = 'apple';
+            apple.style.left = Math.random() * (gameContainer.offsetWidth - 60) + 'px';
+            apple.style.top = '-60px';
+            gameContainer.appendChild(apple);
+
+            const fall = setInterval(() => {
+                apple.style.top = apple.offsetTop + 5 + 'px';
+
+                const appleRect = apple.getBoundingClientRect();
+                const basketRect = basket.getBoundingClientRect();
+                const containerRect = gameContainer.getBoundingClientRect();
+
+                if (appleRect.bottom >= containerRect.bottom) {
+                    clearInterval(fall);
+                    apple.remove();
+                    endGame();
+                } else if (
+                    appleRect.bottom >= basketRect.top &&
+                    appleRect.left < basketRect.right &&
+                    appleRect.right > basketRect.left
+                ) {
+                    clearInterval(fall);
+                    apple.remove();
+                    score++;
+                }
+            }, 20);
+        }
+
+        function endGame() {
+            clearInterval(appleInterval);
+            clearInterval(countdownInterval);
+            document.querySelectorAll('.apple').forEach(a => a.remove());
+            basket.style.display = 'none';
+            resultScreen.style.display = 'flex';
+            finalScore.textContent = `Salasīti āboli: ${score}`;
+        }
+
+        function restartGame() {
+            resultScreen.style.display = 'none';
+            startScreen.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
