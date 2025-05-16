@@ -1,49 +1,66 @@
 <!DOCTYPE html>
 <html lang="lv">
 <head>
-        <!-- Google tag (gtag.js) -->
+    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-5F299BGN0J"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-    
-      gtag('config', 'G-5F299BGN0J');
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-5F299BGN0J');
     </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
     <title>Noķer ābolus</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        html, body {
             margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #87CEEB;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: #87CEEB;
+        }
+
+        #orientation-warning {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            color: black;
+            z-index: 999;
+            font-size: 24px;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
         }
 
         #game-container {
             position: relative;
-            width: 80%;
+            width: 80vw;
             height: 80vh;
             overflow: hidden;
             background-image: url('./fons1.jpg');
             background-size: cover;
             background-position: center;
             border: 2px solid #000;
-            box-shadow: 0 0 0px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
 
         .apple {
             position: absolute;
             width: 60px;
             height: 60px;
+            background-image: url('./red.png');
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
-            background-image: url('./red.png');
             z-index: 1;
         }
 
@@ -52,12 +69,12 @@
             bottom: 10px;
             width: 120px;
             height: 90px;
-            z-index: 10;
+            background-image: url('./1.png');
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
-            background-image: url('./1.png');
             display: none;
+            z-index: 10;
         }
 
         #start-screen, #result-screen {
@@ -70,6 +87,8 @@
             align-items: center;
             background-color: rgba(255, 255, 255, 0.9);
             z-index: 2;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         #result-screen {
@@ -82,16 +101,32 @@
             background-color: #403F6F;
             color: white;
             border: none;
-            margin: 10px;
+            margin-top: 15px;
+            cursor: pointer;
         }
-
 
         #score {
             display: none;
         }
+
+        @media (orientation: portrait) and (max-width: 768px) {
+            #orientation-warning {
+                display: flex;
+            }
+
+            #game-container {
+                display: none;
+            }
+
+
+        }
     </style>
 </head>
 <body>
+    <div id="orientation-warning">
+        Lūdzu, pagriez ierīci horizontāli, lai spēlētu šo spēli.
+    </div>
+
     <div id="game-container">
         <div id="start-screen">
             <h1>Savāc visus ābolus – ja kādu palaidīsi garām, spēle beigsies!</h1>
@@ -117,24 +152,13 @@
         const finalScore = document.getElementById('final-score');
 
         let appleInterval;
-        let countdownInterval;
         let score = 0;
-
-
-        document.addEventListener('mousemove', (e) => {
-            const rect = gameContainer.getBoundingClientRect();
-            const basketWidth = basket.offsetWidth;
-            let x = e.clientX - rect.left - basketWidth / 2;
-            x = Math.max(0, Math.min(rect.width - basketWidth, x));
-            basket.style.left = `${x}px`;
-        });
 
         function startGame() {
             score = 0;
             startScreen.style.display = 'none';
             resultScreen.style.display = 'none';
             basket.style.display = 'block';
-
             appleInterval = setInterval(spawnApple, 1000);
         }
 
@@ -170,7 +194,6 @@
 
         function endGame() {
             clearInterval(appleInterval);
-            clearInterval(countdownInterval);
             document.querySelectorAll('.apple').forEach(a => a.remove());
             basket.style.display = 'none';
             resultScreen.style.display = 'flex';
@@ -181,6 +204,40 @@
             resultScreen.style.display = 'none';
             startScreen.style.display = 'flex';
         }
+
+
+        document.addEventListener('mousemove', (e) => {
+            const rect = gameContainer.getBoundingClientRect();
+            const basketWidth = basket.offsetWidth;
+            let x = e.clientX - rect.left - basketWidth / 2;
+            x = Math.max(0, Math.min(rect.width - basketWidth, x));
+            basket.style.left = `${x}px`;
+        });
+
+        gameContainer.addEventListener('touchmove', (e) => {
+            const rect = gameContainer.getBoundingClientRect();
+            const basketWidth = basket.offsetWidth;
+            const touch = e.touches[0];
+            let x = touch.clientX - rect.left - basketWidth / 2;
+            x = Math.max(0, Math.min(rect.width - basketWidth, x));
+            basket.style.left = `${x}px`;
+        });
+
+        function checkOrientation() {
+            if (window.innerHeight > window.innerWidth) {
+                document.getElementById('orientation-warning').style.display = 'flex';
+                gameContainer.style.display = 'none';
+            } else {
+                document.getElementById('orientation-warning').style.display = 'none';
+                gameContainer.style.display = 'block';
+            }
+        }
+
+       
+        window.addEventListener('load', checkOrientation);
+        
+        window.addEventListener('resize', checkOrientation);
+
     </script>
 </body>
 </html>
